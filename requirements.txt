@@ -1,0 +1,8 @@
+django
+psycopg2-binary
+django-cors-headers
+python-dotenv
+openai-agents
+rich
+markdown
+pandas
