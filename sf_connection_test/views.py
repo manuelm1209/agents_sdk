@@ -171,3 +171,270 @@ def query_salesforce_affiliations(request):
         })
     
     return render(request, 'sf_connection_test/sf-affiliation-query.html', context)
+
+def dashworks_chat(request):
+    """View to provide a chat interface with DashWorks AI"""
+    # Create context with default values
+    context = {
+        'title': 'DashWorks AI Chat',
+        'chat_initialized': True,
+        'messages': [],
+    }
+    
+    # Get DashWorks API key from environment variables
+    dashworks_key = os.getenv('DASHWORKS_KEY')
+    
+    if not dashworks_key:
+        context.update({
+            'chat_initialized': False,
+            'error': 'Missing DashWorks API key in .env file'
+        })
+        return render(request, 'sf_connection_test/dashworks-chat.html', context)
+    
+    # Handle clear chat request
+    if request.method == 'POST' and 'clear_chat' in request.POST:
+        print("Clearing chat history")
+        if 'chat_messages' in request.session:
+            del request.session['chat_messages']
+        return render(request, 'sf_connection_test/dashworks-chat.html', context)
+    
+    # Load existing messages from session
+    messages = request.session.get('chat_messages', [])
+    
+    # Handle chat message submission
+    if request.method == 'POST' and 'message' in request.POST:
+        user_message = request.POST.get('message')
+        
+        # Get the selected bot_id and bot_name from the form
+        bot_id = request.POST.get('bot_id', 'bbbfd13602d44901a75c59d09ed235d7')  # Default to Company_Profile
+        bot_name = request.POST.get('bot_name', 'Company_Profile')  # Default name
+        
+        print(f"User message: {user_message} (using bot: {bot_name}, ID: {bot_id})")
+        
+        # Add user message to chat history
+        messages.append({'role': 'user', 'content': user_message})
+        
+        # Save session immediately after adding user message
+        request.session['chat_messages'] = messages
+        request.session.modified = True
+        
+        try:
+            # Prepare API request            
+            response = requests.post(
+                "https://api.dashworks.ai/v1/answer",
+                headers={
+                    "Authorization": f"Bearer {dashworks_key.strip()}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "message": user_message,
+                    "bot_id": bot_id,
+                    "inline_sources": True,
+                    "stream": False
+                }
+            )
+            
+            print(f"API response status: {response.status_code}")
+            
+            if response.status_code == 200:
+                data = response.json()
+                ai_response = data.get('answer', 'No response from AI')
+                sources = data.get('sources', [])
+                
+                # Add AI response to chat history
+                messages.append({'role': 'assistant', 'content': ai_response, 'sources': sources})
+            else:
+                error_message = f"DashWorks API Error: {response.status_code}"
+                messages.append({'role': 'system', 'content': error_message})
+                context['error'] = error_message
+                
+                try:
+                    error_details = response.json()
+                    context['details'] = error_details
+                except:
+                    context['details'] = response.text if response.text else "No error details available"
+                
+        except Exception as e:
+            error_message = f'API Request Exception: {str(e)}'
+            messages.append({'role': 'system', 'content': error_message})
+            context['error'] = error_message
+        
+        # Save updated messages to session
+        request.session['chat_messages'] = messages
+        request.session.modified = True
+    
+    # Add messages to context
+    context['messages'] = messages
+    
+    return render(request, 'sf_connection_test/dashworks-chat.html', context)
+
+def test_dashworks_api(request):
+    """Simple view to test DashWorks API connection"""
+    context = {
+        'title': 'DashWorks API Test',
+    }
+    
+    # Get DashWorks API key from environment variables
+    dashworks_key = os.getenv('DASHWORKS_KEY')
+    
+    if not dashworks_key:
+        context.update({
+            'success': False,
+            'error': 'Missing DashWorks API key in .env file'
+        })
+        return render(request, 'sf_connection_test/api-test.html', context)
+    
+    # Only proceed if the user clicked the test button
+    if request.method == 'POST':
+        try:
+            # Try different authorization methods
+            test_results = []
+            
+            # Test 1: Raw API key
+            response1 = requests.post(
+                "https://api.dashworks.ai/v1/answer",
+                headers={
+                    "Authorization": dashworks_key,
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "message": "Hello, this is a test message",
+                    "bot_id": "480f108b1d1041b28ff8af5d3be95276",
+                    "inline_sources": True,
+                    "stream": False
+                }
+            )
+            test_results.append({
+                'method': 'Raw API key',
+                'status': response1.status_code,
+                'headers_sent': {"Authorization": dashworks_key[:5] + '...' + dashworks_key[-5:]},
+                'response': response1.text[:100] + '...' if len(response1.text) > 100 else response1.text
+            })
+            
+            # Test 2: Bearer prefix
+            response2 = requests.post(
+                "https://api.dashworks.ai/v1/answer",
+                headers={
+                    "Authorization": f"Bearer {dashworks_key}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "message": "Hello, this is a test message",
+                    "bot_id": "480f108b1d1041b28ff8af5d3be95276",
+                    "inline_sources": True,
+                    "stream": False
+                }
+            )
+            test_results.append({
+                'method': 'Bearer prefix',
+                'status': response2.status_code,
+                'headers_sent': {"Authorization": f"Bearer {dashworks_key[:5]}...{dashworks_key[-5:]}"},
+                'response': response2.text[:100] + '...' if len(response2.text) > 100 else response2.text
+            })
+            
+            # Test 3: Lowercase authorization
+            response3 = requests.post(
+                "https://api.dashworks.ai/v1/answer",
+                headers={
+                    "authorization": dashworks_key,
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "message": "Hello, this is a test message",
+                    "bot_id": "480f108b1d1041b28ff8af5d3be95276",
+                    "inline_sources": True,
+                    "stream": False
+                }
+            )
+            test_results.append({
+                'method': 'Lowercase authorization',
+                'status': response3.status_code,
+                'headers_sent': {"authorization": dashworks_key[:5] + '...' + dashworks_key[-5:]},
+                'response': response3.text[:100] + '...' if len(response3.text) > 100 else response3.text
+            })
+            
+            context.update({
+                'success': True,
+                'test_results': test_results
+            })
+            
+        except Exception as e:
+            context.update({
+                'success': False,
+                'error': f'API Request Exception: {str(e)}'
+            })
+    
+    return render(request, 'sf_connection_test/api-test.html', context)
+
+def debug_info(request):
+    """View to display debug information"""
+    debug_data = {
+        'session_keys': list(request.session.keys()),
+        'dashworks_key_set': bool(os.getenv('DASHWORKS_KEY')),
+        'dashworks_key_length': len(os.getenv('DASHWORKS_KEY', '')),
+        'request_method': request.method,
+        'cookies': request.COOKIES,
+    }
+    
+    # If chat messages exist in the session, show a preview
+    if 'chat_messages' in request.session:
+        messages = request.session['chat_messages']
+        debug_data['messages_count'] = len(messages)
+        if messages:
+            debug_data['last_message'] = {
+                'role': messages[-1]['role'],
+                'content_preview': messages[-1]['content'][:50] + '...' if len(messages[-1]['content']) > 50 else messages[-1]['content']
+            }
+    
+    return render(request, 'sf_connection_test/debug-info.html', {'debug_data': debug_data})
+
+def curl_test(request):
+    """A view that shows curl-like commands to test the API directly"""
+    dashworks_key = os.getenv('DASHWORKS_KEY', 'YOUR_API_KEY')
+    bot_id = "480f108b1d1041b28ff8af5d3be95276"
+    
+    # Generate commands for testing
+    curl_commands = [
+        {
+            'title': 'Test with Bearer prefix',
+            'command': f'curl -X POST https://api.dashworks.ai/v1/answer \\\n'
+                      f'  -H "Authorization: Bearer {dashworks_key}" \\\n'
+                      f'  -H "Content-Type: application/json" \\\n'
+                      f'  -d \'{{"message": "Hello", "bot_id": "{bot_id}", "inline_sources": true, "stream": false}}\''
+        },
+        {
+            'title': 'Test with raw API key',
+            'command': f'curl -X POST https://api.dashworks.ai/v1/answer \\\n'
+                      f'  -H "Authorization: {dashworks_key}" \\\n'
+                      f'  -H "Content-Type: application/json" \\\n'
+                      f'  -d \'{{"message": "Hello", "bot_id": "{bot_id}", "inline_sources": true, "stream": false}}\''
+        },
+        {
+            'title': 'Test with Python requests',
+            'command': f'import requests\n\n'
+                      f'response = requests.post(\n'
+                      f'    "https://api.dashworks.ai/v1/answer",\n'
+                      f'    headers={{\n'
+                      f'        "Authorization": "Bearer {dashworks_key}",\n'
+                      f'        "Content-Type": "application/json"\n'
+                      f'    }},\n'
+                      f'    json={{\n'
+                      f'        "message": "Hello",\n'
+                      f'        "bot_id": "{bot_id}",\n'
+                      f'        "inline_sources": True,\n'
+                      f'        "stream": False\n'
+                      f'    }}\n'
+                      f')\n\n'
+                      f'print(response.status_code)\n'
+                      f'print(response.text)'
+        }
+    ]
+    
+    context = {
+        'title': 'API Testing Commands',
+        'curl_commands': curl_commands,
+        'api_key': f"{dashworks_key[:5]}...{dashworks_key[-5:]}",
+        'bot_id': bot_id
+    }
+    
+    return render(request, 'sf_connection_test/curl-test.html', context)

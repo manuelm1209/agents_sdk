@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'sf_connection_test',
+    'agents_test',
 ]
 
 MIDDLEWARE = [
