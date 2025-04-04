@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'sf_connection_test',
     'agents_test',
+    'notion_dashboard',
 ]
 
 MIDDLEWARE = [
