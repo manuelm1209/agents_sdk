@@ -1,1 +1,132 @@
-<h1>Notion Dashboard</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notion Dashboard</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Optional custom CSS -->
+    <style>
+        .loading {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">Notion Database Dashboard</h1>
+        
+        <div class="row mb-4">
+            <div class="col">
+                <button id="fetchDataBtn" class="btn btn-primary">
+                    Fetch Notion Database
+                </button>
+                <div id="loading" class="loading spinner-border text-primary ms-2" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+        
+        <div id="statusMessage" class="alert alert-info d-none"></div>
+        
+        <div class="table-responsive">
+            <table id="notionTable" class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Username</th>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Email</th>
+                        <th>Title</th>
+                        <th>Department</th>
+                        <th>Endeavor Office</th>
+                        <th>Position Level</th>
+                        <th>Affiliation ID</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Data will be populated here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- AJAX for making the request -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fetchButton = document.getElementById('fetchDataBtn');
+            const tableBody = document.querySelector('#notionTable tbody');
+            const loadingSpinner = document.getElementById('loading');
+            const statusMessage = document.getElementById('statusMessage');
+            
+            fetchButton.addEventListener('click', function() {
+                // Show loading spinner
+                loadingSpinner.style.display = 'inline-block';
+                statusMessage.textContent = "Fetching data from Notion...";
+                statusMessage.classList.remove('d-none', 'alert-danger');
+                statusMessage.classList.add('alert-info');
+                
+                // Clear existing table data
+                tableBody.innerHTML = '';
+                
+                // Make AJAX request to the server with the correct endpoint
+                fetch('/notion/fetch-data/')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Hide loading spinner
+                        loadingSpinner.style.display = 'none';
+                        
+                        if (data.success && data.pages.length > 0) {
+                            // Update status message
+                            statusMessage.textContent = `Successfully loaded ${data.pages.length} records`;
+                            statusMessage.classList.remove('d-none', 'alert-danger');
+                            statusMessage.classList.add('alert-success');
+                            
+                            // Populate the table with data
+                            data.pages.forEach(page => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${page.username}</td>
+                                    <td>${page.first_name}</td>
+                                    <td>${page.last_name}</td>
+                                    <td>${page.email}</td>
+                                    <td>${page.title}</td>
+                                    <td>${page.department}</td>
+                                    <td>${page.endeavor_office}</td>
+                                    <td>${page.position_level}</td>
+                                    <td>${page.affiliation_id}</td>
+                                    <td>${page.start_date}</td>
+                                    <td>${page.end_date}</td>
+                                `;
+                                tableBody.appendChild(row);
+                            });
+                        } else {
+                            // Show no data message
+                            statusMessage.textContent = "No data found in the Notion database";
+                            statusMessage.classList.remove('d-none', 'alert-info');
+                            statusMessage.classList.add('alert-warning');
+                        }
+                    })
+                    .catch(error => {
+                        // Handle error
+                        console.error('Error:', error);
+                        loadingSpinner.style.display = 'none';
+                        statusMessage.textContent = "Error fetching data: " + error.message;
+                        statusMessage.classList.remove('d-none', 'alert-info');
+                        statusMessage.classList.add('alert-danger');
+                    });
+            });
+        });
+    </script>
+</body>
+</html>

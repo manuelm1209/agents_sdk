@@ -185,3 +185,6 @@ db/
 staticfiles/
 mediafiles/
 media/
+
+# Local output files
+notion_database.json
