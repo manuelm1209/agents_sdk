@@ -14,8 +14,8 @@ def get_salesforce_token():
         # Get credentials from environment variables
         consumer_key = os.getenv('CONSUMER_KEY')
         consumer_secret = os.getenv('CONSUMER_SECRET')
-        username = os.getenv('USERNAME')
-        password = os.getenv('PASSWORD')
+        username = os.getenv('SF_USERNAME')
+        password = os.getenv('SF_PASSWORD')
         sf_domain = os.getenv('SF_DOMAIN')
         
         # Check if required credentials are provided
