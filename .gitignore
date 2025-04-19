@@ -188,3 +188,6 @@ media/
 
 # Local output files
 notion_database.json
+
+# Google Sheets API credentials
+gsheets-credentials.json
