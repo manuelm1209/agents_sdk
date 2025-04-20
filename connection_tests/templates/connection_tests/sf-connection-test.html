@@ -1,0 +1,52 @@
+{% extends 'layouts/blank.html' %}
+{% load static %}
+
+{% block title %}
+    SF Connection Test
+{% endblock title %}
+
+{% block content %}
+    <style>
+        .canva {
+            background-color: var(--bs-tertiary-bg);
+        }
+    </style>
+        
+    <div class="container py-4">
+        <h1 class="mb-4">Salesforce Connection Test</h1>
+        
+        {% if connection_successful %}
+            <div class="alert alert-success mb-4">
+                <h2 class="h4 mb-2">Connection Successful! ✅</h2>
+                <p class="mb-0">Successfully connected to Salesforce instance: {{ instance_url }}</p>
+            </div>
+            
+            <div class="mb-4">
+                <a href="{% url 'sf_affiliation_query' %}" class="btn btn-success me-2">View Endeavor Staff Affiliations</a>
+                <a href="{% url 'dashworks_chat' %}" class="btn btn-primary">DashWorks Chat</a>
+            </div>
+            
+            <h2 class="h4 mb-2">User Information:</h2>
+            <pre class="canva bg-opacity-75 p-3 rounded border">{{ user_info|pprint }}</pre>
+            
+        {% else %}
+            <div class="alert alert-danger mb-4">
+                <h2 class="h4 mb-2">Connection Failed ❌</h2>
+                <p class="mb-2"><strong>Error:</strong> {{ error }}</p>
+                
+                {% if details %}
+                <h3 class="h5 mb-2">Error Details:</h3>
+                <pre class="bg-light bg-opacity-75 p-2 rounded border">{{ details|pprint }}</pre>
+                {% endif %}
+            </div>
+            
+            <h3 class="h5 mb-2">Troubleshooting Tips:</h3>
+            <ul class="list-group list-group-flush mb-4">
+                <li class="list-group-item bg-transparent">Make sure your .env file has all required credentials (SF_USERNAME, SF_PASSWORD, CONSUMER_KEY, CONSUMER_SECRET)</li>
+                <li class="list-group-item bg-transparent">Verify that your Salesforce credentials are correct</li>
+                <li class="list-group-item bg-transparent">Check if the connected app in Salesforce is properly configured</li>
+                <li class="list-group-item bg-transparent">Ensure that your IP address is allowed in Salesforce network access settings</li>
+            </ul>
+        {% endif %}
+    </div>
+{% endblock content %}

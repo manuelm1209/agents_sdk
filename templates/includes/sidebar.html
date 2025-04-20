@@ -136,7 +136,7 @@
 <div class="sidebar border border-right col-md-3 col-lg-2 p-0 bg-body-tertiary">
     <div class="offcanvas-md offcanvas-end bg-body-tertiary my-2 container" tabindex="-1" id="sidebarMenu" aria-labelledby="sidebarMenuLabel">
         <div class="offcanvas-header">
-            <h5 class="offcanvas-title" id="sidebarMenuLabel">Endeavor AI</h5>
+            <h5 class="offcanvas-title" id="sidebarMenuLabel">Endeavor Lab</h5>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebarMenu" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body d-md-flex flex-column p-0 pt-lg-3 overflow-y-auto">
@@ -148,19 +148,20 @@
                 </li>
                 <li class="nav-item mb-1">
                     {% with '/sf_connection/' as sf_path %}
-                    {% with '/agents/' as agents_path %}
+                    {% with '/connections/' as connection_path %}
                     {% with '/notion/' as notion_path %}
-                    <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 {% if sf_path in request.path or agents_path in request.path or notion_path in request.path %}{% else %}collapsed{% endif %}" 
+                    <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 {% if sf_path in request.path or connection_path in request.path or notion_path in request.path %}{% else %}collapsed{% endif %}" 
                            data-bs-toggle="collapse" 
                            data-bs-target="#connection-tests-collapse" 
-                           aria-expanded="{% if sf_path in request.path or agents_path in request.path or notion_path in request.path %}true{% else %}false{% endif %}">
+                           aria-expanded="{% if sf_path in request.path or connection_path in request.path or notion_path in request.path %}true{% else %}false{% endif %}">
                       Connection Tests
                     </button>
-                    <div class="collapse {% if sf_path in request.path or agents_path in request.path or notion_path in request.path %}show{% endif %}" id="connection-tests-collapse">
+                    <div class="collapse {% if sf_path in request.path or connection_path in request.path or notion_path in request.path %}show{% endif %}" id="connection-tests-collapse">
                       <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                        <li><a href="/sf_connection/" class="nav-link d-inline-flex text-decoration-none rounded {% if sf_path in request.path %}active{% else %}link-body-emphasis{% endif %}">Salesforce Connection</a></li>
-                        <li><a href="/agents/" class="nav-link d-inline-flex text-decoration-none rounded {% if agents_path in request.path %}active{% else %}link-body-emphasis{% endif %}">Agents Test</a></li>
-                        <li><a href="/notion/" class="nav-link d-inline-flex text-decoration-none rounded {% if notion_path in request.path %}active{% else %}link-body-emphasis{% endif %}">Notion Dashboard</a></li>
+                        <li><a href="/sf_connection/" class="nav-link d-inline-flex text-decoration-none rounded {% if sf_path in request.path %}active{% else %}link-body-emphasis{% endif %}">Salesforce Connection (Legacy)</a></li>
+                        <li><a href="/connections/" class="nav-link d-inline-flex text-decoration-none rounded {% if connection_path in request.path and 'notion' not in request.path %}active{% else %}link-body-emphasis{% endif %}">Salesforce (New)</a></li>
+                        <li><a href="/connections/notion/" class="nav-link d-inline-flex text-decoration-none rounded {% if connection_path in request.path and 'notion' in request.path %}active{% else %}link-body-emphasis{% endif %}">Notion Dashboard (New)</a></li>
+                        <li><a href="/notion/" class="nav-link d-inline-flex text-decoration-none rounded {% if notion_path in request.path and not connection_path in request.path %}active{% else %}link-body-emphasis{% endif %}">Notion Dashboard (Legacy)</a></li>
                       </ul>
                     </div>
                     {% endwith %}
