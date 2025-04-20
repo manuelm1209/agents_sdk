@@ -158,10 +158,8 @@
                     </button>
                     <div class="collapse {% if sf_path in request.path or connection_path in request.path or notion_path in request.path %}show{% endif %}" id="connection-tests-collapse">
                       <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                        <li><a href="/sf_connection/" class="nav-link d-inline-flex text-decoration-none rounded {% if sf_path in request.path %}active{% else %}link-body-emphasis{% endif %}">Salesforce Connection (Legacy)</a></li>
                         <li><a href="/connections/" class="nav-link d-inline-flex text-decoration-none rounded {% if connection_path in request.path and 'notion' not in request.path %}active{% else %}link-body-emphasis{% endif %}">Salesforce (New)</a></li>
                         <li><a href="/connections/notion/" class="nav-link d-inline-flex text-decoration-none rounded {% if connection_path in request.path and 'notion' in request.path %}active{% else %}link-body-emphasis{% endif %}">Notion Dashboard (New)</a></li>
-                        <li><a href="/notion/" class="nav-link d-inline-flex text-decoration-none rounded {% if notion_path in request.path and not connection_path in request.path %}active{% else %}link-body-emphasis{% endif %}">Notion Dashboard (Legacy)</a></li>
                       </ul>
                     </div>
                     {% endwith %}

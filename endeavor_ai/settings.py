@@ -35,8 +35,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # My apps.
-    'sf_connection_test',
-    'notion_dashboard',
     'connection_tests'
 ]
 
